@@ -31,7 +31,7 @@ export const AllowListCreateSchema = z.object({
 export type AllowListCreateFormValues = z.infer<typeof AllowListCreateSchema>;
 
 const defaults: AllowListCreateFormValues = {
-    allowList: [{address: "0xC3l0.......m1nt", units: 100}]
+    allowList: [{address: "", units: 100}]
 }
 
 export const CreateAllowListForm = ({defaultValues = defaults, displayUnits = false}) => {
@@ -46,16 +46,16 @@ export const CreateAllowListForm = ({defaultValues = defaults, displayUnits = fa
         mode: "onChange",
     });
 
-    const {control, register, handleSubmit} = form;
+    const {control, register, handleSubmit, reset} = form;
 
-    const {fields, append, remove} = useFieldArray({
+    const {fields, append, remove,} = useFieldArray({
         control,
         name: "allowList",
     });
 
+    const {allowList} = form.watch();
+
     const onSubmit = async (values: AllowListCreateFormValues) => {
-
-
         try {
             setLoading(true);
             const parsedAllowList = values.allowList.map(
@@ -92,11 +92,14 @@ export const CreateAllowListForm = ({defaultValues = defaults, displayUnits = fa
     return (
         <Form {...form}>
             {allowListCID && (
-                <Alert className={"m-4"}>
+                <Alert className={"m-4 bg-green-300 max-w-screen-md"}>
                     <AlertTitle>Uploaded!</AlertTitle>
                     <AlertDescription>
-                        Allowlist available on IPFS at <a
-                        href={`https://${allowListCID}.ipfs.dweb.link`}>{allowListCID}</a> </AlertDescription>
+                        Allowlist available on IPFS at <a className={"text-blue-500"}
+                                                          href={`https://${allowListCID}.ipfs.dweb.link`}
+                                                          target="_blank"
+                                                          rel="noopener noreferrer">ipfs://{allowListCID}</a>
+                    </AlertDescription>
                 </Alert>
             )}
             <form onSubmit={handleSubmit(onSubmit)} className={"flex-column space-y-4"}>
@@ -163,20 +166,29 @@ export const CreateAllowListForm = ({defaultValues = defaults, displayUnits = fa
                             </div>
                         )}
 
-                        <Button onClick={() => remove(index)} className={"bg-red-500 hover:bg-red-600"}>Remove</Button>
+                        <Button onClick={() => remove(index)} variant={"destructive"}>Remove</Button>
                     </div>
                 ))}
-                <div className={"space-x-4"}>
-                    <Button onClick={() => append({address: "", units: 0})}
-                            className={"bg-blue-400 hover:bg-blue-500"}>Add Address</Button>
-                    <Button type={"submit"} className={"bg-green-400 hover:bg-green-500"} disabled={loading}>Store allow
-                        list</Button>
-                    {   // TODO fix this
-                        // @ts-ignore
-                        form.formState.errors?.general && (
+                {   // TODO fix this
+                    // @ts-ignore
+                    form.formState.errors?.general && (
                         // @ts-ignore
                         <span className={"text-sm text-red-500"}>{form.formState.errors.general.message}</span>
                     )}
+                <div className={"flex space-x-4"}>
+                    <Button onClick={() => append({address: "", units: 0})}
+                            className={"bg-blue-400 hover:bg-blue-500"}>Add Address</Button>
+                    <Button type={"submit"} className={"bg-green-400 hover:bg-green-500"}
+                            disabled={(loading || form.formState.errors.allowList?.length > 0)}>Store allow
+                        list</Button>
+                    <Button variant={"destructive"} onClick={() => reset(defaultValues)}>Reset</Button>
+                    <section>
+                        <p className={"text-sm"}>{allowList.length} record</p>
+                        <p className={"text-sm"}>Distribution: {allowList.reduce((acc, curr) => acc + +curr.units, 0)} /
+                            100</p>
+                    </section>
+
+
                 </div>
             </form>
         </Form>

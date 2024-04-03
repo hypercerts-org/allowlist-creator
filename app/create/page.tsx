@@ -10,7 +10,7 @@ export default function Home() {
             <h1 className="text-xl uppercase">Create allow list</h1>
             <div className={"space-y-4"}>
 
-                <section className={"space-y-4"}>
+                <section className={"space-y-4 max-w-xl"}>
                     <h2 className="text-lg font-bold">Welcome to the allow list creation page</h2>
                     <p>
                         This is a simple allow list creation form.
@@ -21,10 +21,19 @@ export default function Home() {
                         are
                         allowed to mint.
                     </p>
-                    <h2 className="text-lg font-bold">Download template</h2>
+                    <p>
+                        When you submit the form, the application will execute additional validations before uploading
+                        the allow list to IPFS. When successful the allow list will be available at the CID displayed.
+                    </p>
+                    <p>
+                        Hypercerts will be minted with a total supply of 1 ether (10 ^ 18 units). The percentages
+                        provided in the form below will be used to calculate the number of units each address is allowed
+                        to mint.
+                    </p>
+                    <h2 className="text-lg font-bold">Larger allow lists</h2>
                     <p>
                         This process works well for smaller lists. In case you have larger groups, or love spreadsheets,
-                        download the template below and head to <Link href={'/upload'} legacyBehavior>the Upload
+                        download the template below and head to the <Link href={'/upload'} className={"text-blue-500"}>Upload
                         page</Link>.
 
 
