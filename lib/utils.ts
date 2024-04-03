@@ -18,11 +18,11 @@ export const assertExists = (value: any, messageToThrow?: string) => {
 };
 
 export const getPercentage = (value: bigint | number, total: bigint, decimals = 2) => {
-    return BigInt(BigInt(value) * 100n / total).toString()
+    return BigInt(BigInt(value) * 10000n / total).toString()
 }
 
 export const getPercentageAsEthWei = (percentage: string) => {
-    return (BigInt(percentage) * parseEther("1")) / 100n
+    return (BigInt(percentage) * parseEther("1")) / 10000n
 }
 
 export const mapValueToFraction = (value: bigint, total: bigint) => {

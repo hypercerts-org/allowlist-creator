@@ -8,13 +8,9 @@ export default function Home() {
     return (
         <main className="flex min-h-screen flex-col items-center justify-start p-24 space-y-4">
             <h1 className="text-xl uppercase">Create allow list</h1>
-            <div className={"space-y-4"}>
+            <div className={"space-y-4 max-w-xl"}>
 
-                <section className={"space-y-4 max-w-xl"}>
-                    <h2 className="text-lg font-bold">Welcome to the allow list creation page</h2>
-                    <p>
-                        This is a simple allow list creation form.
-                    </p>
+                <section className={"space-y-4"}>
                     <h2 className="text-lg font-bold">Instructions</h2>
                     <p>
                         To create an allow list, you need to provide a list of addresses and the number of units they

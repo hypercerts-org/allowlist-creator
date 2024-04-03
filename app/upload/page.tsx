@@ -44,17 +44,21 @@ export default function Home() {
     return (
         <main className="flex min-h-screen flex-col items-center justify-start p-24 space-y-4">
             <h1 className="text-xl uppercase">Upload allow list</h1>
-            <div className={"space-y-4"}>
+            <div className={"space-y-4 max-w-xl"}>
                 <section className={"space-y-4"}>
-                    <h2 className="text-lg font-bold">Welcome to the allow list upload page</h2>
-                    <p>
-                        This is a simple allow list upload flow.
-                    </p>
                     <h2 className="text-lg font-bold">Instructions</h2>
                     <p>
                         Provide a filled in template. This page will render, verify and provide a means to upload the
-                        allow
-                        list
+                        allow list
+                    </p>
+                    <p>
+                        When you submit the form, the application will execute additional validations before uploading
+                        the allow list to IPFS. When successful the allow list will be available at the CID displayed.
+                    </p>
+                    <p>
+                        Hypercerts will be minted with a total supply of 1 ether (10 ^ 18 units). The percentages
+                        provided in the form below will be used to calculate the number of units each address is allowed
+                        to mint.
                     </p>
                     <h2 className="text-lg font-bold">Download template</h2>
                     <p>
@@ -75,9 +79,7 @@ export default function Home() {
                 </section>
                 <Separator/>
             </div>
-            <section>
-                <UploadCsvForm onFileSelect={handleFileSelect}/>
-            </section>
+            <UploadCsvForm onFileSelect={handleFileSelect}/>
             {errors && errors.length > 0 && (<section>
                 <h2 className="text-lg">Errors</h2>
                 <ul>
@@ -89,7 +91,7 @@ export default function Home() {
             {allowList && (
                 <section>
                     <h2 className="text-lg">Allow list data</h2>
-                    <AllowListTable data={allowList}/>
+                    <AllowListTable allowList={allowList}/>
                 </section>
             )}
         </main>

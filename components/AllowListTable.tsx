@@ -2,43 +2,73 @@
 
 import {Button} from "@/components/ui/button";
 import {useToast} from "@/components/ui/use-toast";
-import {AllowlistEntry, validateAllowlist} from "@hypercerts-org/sdk";
+import {AllowlistEntry} from "@hypercerts-org/sdk";
 import {useUploadAllowList} from "@/hooks/useUploadAllowlist";
 import {useState} from "react";
-import {ColumnDef, createColumnHelper, flexRender, getCoreRowModel, useReactTable} from "@tanstack/react-table"
-import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow} from "@/components/ui/table";
+import {ColumnDef} from "@tanstack/react-table"
+import {DataTable} from "@/components/DataTable";
+import {Alert, AlertDescription, AlertTitle} from "@/components/ui/alert";
+import {mapValueToFraction} from "@/lib/utils";
+
+const columns: ColumnDef<AllowlistEntry>[] = [
+    {
+        accessorKey: "address",
+        header: "Address",
+    },
+    {
+        accessorKey: "units",
+        header: "Units",
+    },
+]
 
 
-export const AllowListTable = ({data}: { data: AllowlistEntry[] }) => {
-    const columnHelper = createColumnHelper<AllowlistEntry>()
-
-    const defaultColumns = [
-        columnHelper.display({
-            id: "address", cell: info => info.getValue(), header: () => <span>Address</span>,
-        }),
-        columnHelper.display({id: "units", cell: info => info.getValue(), header: () => <span>Units</span>,}),
-    ]
-
-    console.log(data)
-
-    const table = useReactTable({
-        data,
-        columns: defaultColumns,
-        getCoreRowModel:
-            getCoreRowModel(),
-    })
+export const AllowListTable = ({allowList}: { allowList: AllowlistEntry[] }) => {
     const {toast} = useToast();
     const {uploadAllowList} = useUploadAllowList();
     const [allowListCID, setAllowListCID] = useState<string>("");
     const [loading, setLoading] = useState<boolean>(false);
+
+    if (!allowList) {
+        return (<Alert className={"m-4 bg-red-300 max-w-lg"}>
+            <AlertTitle>Empty!</AlertTitle>
+            <AlertDescription>
+                No data to display
+            </AlertDescription>
+        </Alert>);
+    }
 
 
     const onSubmit = async (values: AllowlistEntry[]) => {
         try {
             setLoading(true);
 
-            const totalUnits = values.reduce((acc, curr) => acc + BigInt(curr.units), 0n);
-            const res = await uploadAllowList(values, totalUnits);
+            const totalPoints = values.reduce((acc, curr) => acc + BigInt(curr.units), 0n);
+            const totalUnits = allowList.map((entry) => {
+                return mapValueToFraction(BigInt(entry.units), totalPoints)
+            });
+
+            // make sure total units add up to 10 ** 18 (1 ether) and add rounding error to last entry
+            const totalUnitsSum = totalUnits.reduce((acc, curr) => acc + curr, 0n);
+            const roundingError = 10n ** 18n - totalUnitsSum;
+            totalUnits[totalUnits.length - 1] += roundingError;
+
+            const parsedAllowList = values.map((entry, index) => {
+                return {
+                    address: entry.address,
+                    units: totalUnits[index]
+                }
+            })
+
+            if (totalUnits.reduce((acc, curr) => acc + curr, 0n) !== 10n ** 18n) {
+                toast({
+                    title: "Error",
+                    description: "Total units do not add up to 1 ether"
+                })
+                return;
+            }
+
+
+            const res = await uploadAllowList(parsedAllowList, totalUnits.reduce((acc, curr) => acc + curr, 0n));
 
             // TODO better typing check if res has CID
             //@ts-ignore
@@ -75,57 +105,25 @@ export const AllowListTable = ({data}: { data: AllowlistEntry[] }) => {
 
     }
 
-    console.log(table.getRowModel().rows)
-
     return (
         <div className={"space-y-4"}>
-            <div className="rounded-md border">
-                <Table>
-                    <TableHeader>
-                        {table.getHeaderGroups().map((headerGroup) => (
-                            <TableRow key={headerGroup.id}>
-                                {headerGroup.headers.map((header) => {
-                                    return (
-                                        <TableHead key={header.id}>
-                                            {header.isPlaceholder
-                                                ? null
-                                                : flexRender(
-                                                    header.column.columnDef.header,
-                                                    header.getContext()
-                                                )}
-                                        </TableHead>
-                                    )
-                                })}
-                            </TableRow>
-                        ))}
-                    </TableHeader>
-                    <TableBody>
-                        {table.getRowModel().rows?.length ? (
-                            table.getRowModel().rows.map((row) => (
-                                <TableRow
-                                    key={row.id}
-                                    data-state={row.getIsSelected() && "selected"}
-                                >
-                                    {row.getVisibleCells().map((cell) => (
-                                        <TableCell key={cell.id}>
-                                            {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                                        </TableCell>
-                                    ))}
-                                </TableRow>
-                            ))
-                        ) : (
-                            <TableRow>
-                                <TableCell colSpan={defaultColumns.length} className="h-24 text-center">
-                                    No results.
-                                </TableCell>
-                            </TableRow>
-                        )}
-                    </TableBody>
-                </Table>
-            </div>
-            <Button type={"submit"} onClick={() => onSubmit(data)} className={"bg-green-400 hover:bg-green-500"}>Store
-                allow
-                list</Button>
+            {allowListCID && (
+                <Alert className={"m-4 bg-green-300 max-w-xl"}>
+                    <AlertTitle>Uploaded!</AlertTitle>
+                    <AlertDescription>
+                        Allowlist available on IPFS at <a className={"text-blue-500"}
+                                                          href={`https://${allowListCID}.ipfs.dweb.link`}
+                                                          target="_blank"
+                                                          rel="noopener noreferrer">ipfs://{allowListCID}</a>
+                    </AlertDescription>
+                </Alert>
+            )}
+            <DataTable columns={columns} data={allowList}/>
+            <Button type={"submit"} disabled={loading} onClick={() => onSubmit(allowList)}
+                    className={"bg-green-400 hover:bg-green-500"}>Store allow list</Button>
+            <section>
+                <p className={"text-sm"}>{allowList.length} records</p>
+            </section>
         </div>
     )
 }

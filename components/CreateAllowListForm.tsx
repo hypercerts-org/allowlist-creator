@@ -55,6 +55,7 @@ export const CreateAllowListForm = ({defaultValues = defaults, displayUnits = fa
 
     const {allowList} = form.watch();
 
+    const hasErrors = form.formState.errors.allowList?.length && form.formState.errors.allowList.length > 0;
     const onSubmit = async (values: AllowListCreateFormValues) => {
         try {
             setLoading(true);
@@ -63,6 +64,7 @@ export const CreateAllowListForm = ({defaultValues = defaults, displayUnits = fa
             )
 
             const totalUnits = parsedAllowList.reduce((acc, curr) => acc + BigInt(curr.units), 0n);
+
             const res = await uploadAllowList(parsedAllowList, totalUnits);
 
             // TODO better typing check if res has CID
@@ -179,16 +181,16 @@ export const CreateAllowListForm = ({defaultValues = defaults, displayUnits = fa
                     <Button onClick={() => append({address: "", units: 0})}
                             className={"bg-blue-400 hover:bg-blue-500"}>Add Address</Button>
                     <Button type={"submit"} className={"bg-green-400 hover:bg-green-500"}
-                            disabled={(loading || form.formState.errors.allowList?.length > 0)}>Store allow
-                        list</Button>
+                        // TODO fix this
+                        // @ts-ignore
+                            disabled={(loading || hasErrors)}>Store
+                        allow list</Button>
                     <Button variant={"destructive"} onClick={() => reset(defaultValues)}>Reset</Button>
                     <section>
                         <p className={"text-sm"}>{allowList.length} record</p>
                         <p className={"text-sm"}>Distribution: {allowList.reduce((acc, curr) => acc + +curr.units, 0)} /
                             100</p>
                     </section>
-
-
                 </div>
             </form>
         </Form>

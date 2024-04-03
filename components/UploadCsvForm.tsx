@@ -6,7 +6,7 @@ export function UploadCsvForm({onFileSelect}: { onFileSelect: (file?: Papa.Local
 
     return (
         <div className="grid w-full max-w-sm items-center gap-1.5">
-            <Label htmlFor="allow-list">Allow list file</Label>
+            <Label htmlFor="allow-list">Provide filled in template allowlist</Label>
             <Input id="allowListUpload" type="file" accept=".csv"
                    onChange={(e) => onFileSelect(e?.target?.files?.[0])}/>
         </div>
