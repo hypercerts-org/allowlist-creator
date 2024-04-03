@@ -8,7 +8,6 @@ import {Form} from "@/components/ui/form";
 import {Button} from "@/components/ui/button";
 import {Input} from "@/components/ui/input";
 import {useToast} from "@/components/ui/use-toast";
-import {validateAllowlist} from "@hypercerts-org/sdk";
 import {useUploadAllowList} from "@/hooks/useUploadAllowlist";
 import {useState} from "react";
 import {Alert, AlertDescription, AlertTitle} from "@/components/ui/alert";
@@ -35,11 +34,6 @@ const defaults: AllowListCreateFormValues = {
     allowList: [{address: "0xC3l0.......m1nt", units: 100}]
 }
 
-type CreateAllowListFormProps = {
-    defaultValues?: AllowListCreateFormValues
-    displayUnits?: boolean
-}
-
 export const CreateAllowListForm = ({defaultValues = defaults, displayUnits = false}) => {
     const {toast} = useToast();
     const {uploadAllowList} = useUploadAllowList();
@@ -52,7 +46,7 @@ export const CreateAllowListForm = ({defaultValues = defaults, displayUnits = fa
         mode: "onChange",
     });
 
-    const {control, register, handleSubmit, watch} = form;
+    const {control, register, handleSubmit} = form;
 
     const {fields, append, remove} = useFieldArray({
         control,
@@ -71,6 +65,8 @@ export const CreateAllowListForm = ({defaultValues = defaults, displayUnits = fa
             const totalUnits = parsedAllowList.reduce((acc, curr) => acc + BigInt(curr.units), 0n);
             const res = await uploadAllowList(parsedAllowList, totalUnits);
 
+            // TODO better typing check if res has CID
+            // @ts-ignore
             if (!res.cid || Object.keys(res.errors).length > 0) {
                 toast({
                     title: "Error",
@@ -80,8 +76,9 @@ export const CreateAllowListForm = ({defaultValues = defaults, displayUnits = fa
                 return;
             }
 
-            const url = `https://${res}.ipfs.dweb.link`;
+            // @ts-ignore
             toast({title: "Submitted", description: `Allow list has been submitted at ipfs://${res.cid}`});
+            // @ts-ignore
             setAllowListCID(res?.cid);
         } catch (e) {
             toast({title: "Error", description: "Failed to upload allow list"});
@@ -123,7 +120,9 @@ export const CreateAllowListForm = ({defaultValues = defaults, displayUnits = fa
                             />
                             {form.formState.errors.allowList?.[index]?.address && (
                                 <span
-                                    className={"text-sm text-red-500"}>{form.formState.errors.allowList[index].address.message}</span>
+                                    // TODO fix this
+                                    // @ts-ignore
+                                    className={"text-sm text-red-500"}>{form.formState.errors.allowList[index].address?.message}</span>
                             )}
                         </div>
                         <div className={"text-sm"}>
@@ -139,7 +138,9 @@ export const CreateAllowListForm = ({defaultValues = defaults, displayUnits = fa
                             />
                             {form.formState.errors.allowList?.[index]?.units && (
                                 <span
-                                    className={"text-sm text-red-500"}>{form.formState.errors.allowList[index].units.message}</span>
+                                    // TODO fix this
+                                    // @ts-ignore
+                                    className={"text-sm text-red-500"}>{form.formState.errors.allowList[index].units?.message}</span>
                             )}
                         </div>
                         {displayUnits && (
@@ -155,6 +156,8 @@ export const CreateAllowListForm = ({defaultValues = defaults, displayUnits = fa
                                 />
                                 {form.formState.errors.allowList?.[index]?.units && (
                                     <span
+                                        // TODO fix this
+                                        // @ts-ignore
                                         className={"text-sm text-red-500"}>{form.formState.errors.allowList[index].units.message}</span>
                                 )}
                             </div>
@@ -164,11 +167,14 @@ export const CreateAllowListForm = ({defaultValues = defaults, displayUnits = fa
                     </div>
                 ))}
                 <div className={"space-x-4"}>
-                    <Button onClick={() => append({address: "", units: parseEther("1")})}
+                    <Button onClick={() => append({address: "", units: 0})}
                             className={"bg-blue-400 hover:bg-blue-500"}>Add Address</Button>
                     <Button type={"submit"} className={"bg-green-400 hover:bg-green-500"} disabled={loading}>Store allow
                         list</Button>
-                    {form.formState.errors.general && (
+                    {   // TODO fix this
+                        // @ts-ignore
+                        form.formState.errors?.general && (
+                        // @ts-ignore
                         <span className={"text-sm text-red-500"}>{form.formState.errors.general.message}</span>
                     )}
                 </div>
