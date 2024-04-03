@@ -24,7 +24,7 @@ const fetchAllowListSchema = z.object({
 type FetchAllowListFormValues = z.infer<typeof fetchAllowListSchema>;
 
 const defaults: FetchAllowListFormValues = {
-    allowListUrl: "ipfs://examplendasioundixcasjknxc892g3843brfcom",
+    allowListUrl: "https://example.com",
 }
 type ValidationResult =
     {
@@ -44,6 +44,7 @@ export default function Home() {
         defaultValues: defaults,
         mode: "onChange",
     });
+    const [isLoading, setIsLoading] = useState(false);
 
     console.log(validationResult)
 
@@ -102,8 +103,9 @@ export default function Home() {
 
     const onSubmit = async (values: FetchAllowListFormValues) => {
         try {
+            setIsLoading(true);
             // fetch allow list
-            const response = await fetch(values.allowListUrl);
+            const response = await fetch("/api/inspect/", {method: "POST", body: JSON.stringify(values)});
             const data = await response.json();
 
             let tree: StandardMerkleTree<[string, bigint]>
@@ -119,7 +121,10 @@ export default function Home() {
                 description: "Review console for more information",
             });
             console.log(e)
+        } finally {
+            setIsLoading(false);
         }
+
     }
 
     const columns: ColumnDef<AllowlistEntry>[] = [
